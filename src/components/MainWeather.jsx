@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 function MainWeather({ data, isDarkMode }) {
   const [localTime, setLocalTime] = useState('');
 
@@ -25,7 +29,9 @@ function MainWeather({ data, isDarkMode }) {
     return <div>Loading...</div>; // Handle loading or no data state
   }
 
-  
+  const weatherDescription = data.weather[0].description;
+  const capitalizedDescription = capitalizeFirstLetter(weatherDescription);
+
   return (
     <div className="flex flex-col">
       <div className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-sm mb-2`}>
@@ -35,9 +41,10 @@ function MainWeather({ data, isDarkMode }) {
       <div className={`text-6xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{Math.round(data.main.temp)}°</div>
       <div className={`text-2xl mt-2 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{data.weather[0].main}</div>
       <p className={`text-sm mt-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-        {data.weather[0].description}. Feels like {Math.round(data.main.feels_like)}°C.
+        {capitalizedDescription}. Feels like {Math.round(data.main.feels_like)}°C.
       </p>
     </div>
   );
 }
+
 export default MainWeather;
