@@ -5,14 +5,20 @@ const WEATHER_API_KEY = process.env.REACT_APP_OPENWEATHER_API_KEY;
 const GEO_API_OPTIONS = {
   method: 'GET',
   headers: {
-    'X-RapidAPI-Key': '4f0dcce84bmshac9e329bd55fd14p17ec6fjsnff18c2e61917',
+    'X-RapidAPI-Key': process.env.REACT_APP_RAPIDAPI_KEY, // Use environment variable
     'X-RapidAPI-Host': 'wft-geo-db.p.rapidapi.com',
   },
 };
 
+/**
+ * Fetches current weather data and forecast for the given coordinates.
+ * @param {number} lat - Latitude of the location.
+ * @param {number} lon - Longitude of the location.
+ * @returns {Promise<[Object, Object]>} - A promise that resolves to an array containing the current weather and forecast data.
+ */
 export async function fetchWeatherData(lat, lon) {
   try {
-    const [weatherPromise, forecastPromise] = await Promise.all([
+    const [weatherResponse, forecastResponse] = await Promise.all([
       fetch(
         `${WEATHER_API_URL}/weather?lat=${lat}&lon=${lon}&appid=${WEATHER_API_KEY}&units=metric`
       ),
@@ -21,21 +27,25 @@ export async function fetchWeatherData(lat, lon) {
       ),
     ]);
 
-    const weatherResponse = await weatherPromise.json();
-    const forecastResponse = await forecastPromise.json();
+    const weatherData = await weatherResponse.json();
+    const forecastData = await forecastResponse.json();
 
-    if (weatherResponse.cod !== 200 || forecastResponse.cod !== "200") {
-      throw new Error('Failed to fetch data');
+    if (weatherData.cod !== 200 || forecastData.cod !== '200') {
+      throw new Error(`Failed to fetch weather data: ${weatherData.message || forecastData.message}`);
     }
 
-    return [weatherResponse, forecastResponse];
+    return [weatherData, forecastData];
   } catch (error) {
-    console.error("Error fetching weather data:", error);
-    return [null, null]; // Return null in case of error to handle it properly
+    console.error('Error fetching weather data:', error);
+    return [null, null]; // Handle error state
   }
 }
 
-
+/**
+ * Fetches cities based on the provided input.
+ * @param {string} input - The prefix to search for city names.
+ * @returns {Promise<Object>} - A promise that resolves to the list of cities.
+ */
 export async function fetchCities(input) {
   try {
     const response = await fetch(
@@ -43,10 +53,14 @@ export async function fetchCities(input) {
       GEO_API_OPTIONS
     );
 
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cities: ${response.statusText}`);
+    }
+
     const data = await response.json();
     return data;
   } catch (error) {
-    console.log(error);
-    return;
+    console.error('Error fetching cities:', error);
+    return null; // Handle error state
   }
 }
