@@ -14,7 +14,7 @@ function WeatherDetails({ data, isDarkMode }) {
       {details.map((detail) => (
         <div
           key={detail.label}
-          className={`bg-gray-700 p-4 rounded-lg ${isDarkMode ? 'bg-gray-700 bg-opacity-50' : 'bg-gray-200'}`}
+          className={`p-4 rounded-lg ${isDarkMode ? 'bg-[#2a3343] text-gray-400' : 'bg-gray-200 text-gray-800'}`}
         >
           <h4 className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{detail.label}</h4>
           <p className={`text-2xl font-bold my-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{detail.value}</p>
