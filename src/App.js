@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { ClipLoader } from 'react-spinners';
 import Search from './components/Search';
 import MainWeather from './components/MainWeather';
 import HourlyForecast from './components/HourlyForecast';
@@ -62,14 +64,20 @@ function App() {
 
     getCurrentLocation();
   }, []);
-  
+
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'text-white bg-gray-900' : 'text-gray-900 bg-gray-100'} p-6`}
-         style={{ backgroundImage: isDarkMode ? 'url(/path-to-dark-background.jpg)' : 'url(/path-to-light-background.jpg)' }}>
+    <div
+      className={`min-h-screen ${isDarkMode ? 'text-white bg-gray-900' : 'text-gray-900 bg-gray-100'} p-6`}
+      style={{
+        backgroundImage: `url(${isDarkMode ? '/path-to-dark-background.jpg' : '/path-to-light-background.jpg'})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       <div className={`max-w-4xl mx-auto ${isDarkMode ? 'bg-gray-800 bg-opacity-80' : 'bg-white bg-opacity-80'} rounded-3xl shadow-lg p-6 backdrop-blur-sm`}>
         {/* Navbar */}
         <nav className="flex items-center justify-between mb-8">
@@ -83,11 +91,20 @@ function App() {
           </button>
         </nav>
 
-        {/* Rest of your content */}
-        {loading && <div className={`text-center text-lg mt-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Loading data...</div>}
-        
+        {/* Main Content */}
+        {loading && (
+          <motion.div
+            className="flex items-center justify-center h-full"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <ClipLoader color={isDarkMode ? '#ffffff' : '#000000'} size={50} />
+          </motion.div>
+        )}
+
         {error && <div className="text-center text-red-500 mt-4">Error: {error}</div>}
-        
+
         {weatherData && forecastData && !loading && !error && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left column */}
@@ -107,7 +124,7 @@ function App() {
                 </div>
               </div>
             </div>
-            
+
             {/* Right column */}
             <div className="space-y-6">
               <HourlyForecast data={forecastData} isDarkMode={isDarkMode} />

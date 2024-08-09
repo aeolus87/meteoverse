@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ClipLoader } from 'react-spinners'; // Import a spinner component
 
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -26,7 +27,11 @@ function MainWeather({ data, isDarkMode }) {
   }, [data]);
 
   if (!data || !data.sys || !data.weather || !data.main) {
-    return <div>Loading...</div>; // Handle loading or no data state
+    return (
+      <div className={`flex items-center justify-center h-full ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        <ClipLoader color={isDarkMode ? '#ffffff' : '#000000'} size={50} />
+      </div>
+    ); // Stylish loading spinner
   }
 
   const weatherDescription = data.weather[0].description;
