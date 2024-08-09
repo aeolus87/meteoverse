@@ -2,58 +2,130 @@ import React, { useState, useEffect } from 'react';
 import Search from './components/Search';
 import MainWeather from './components/MainWeather';
 import HourlyForecast from './components/HourlyForecast';
-import TenDayForecast from './components/TenDayForecast';
+import SevenDayForecast from './components/SevenDayForecast';
 import WeatherDetails from './components/WeatherDetails';
-import UVIndex from './components/UVIndex';
 import Wind from './components/Wind';
+import WeatherMap from './components/WeatherMap';
 import { fetchWeatherData } from './api/ApiServices';
+import { FaSun, FaMoon } from 'react-icons/fa';
 
 function App() {
   const [weatherData, setWeatherData] = useState(null);
   const [forecastData, setForecastData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
-  const handleOnSearchChange = async (searchData) => {
-    const [lat, lon] = searchData.value.split(" ");
-    const [weather, forecast] = await fetchWeatherData(lat, lon);
-    
-    if (weather && forecast) {
-      setWeatherData(weather);
-      setForecastData(forecast);
-    } else {
-      console.error('Failed to load weather data');
+  const fetchWeatherForLocation = async (lat, lon) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [weather, forecast] = await fetchWeatherData(lat, lon);
+
+      if (weather && forecast) {
+        setWeatherData(weather);
+        setForecastData(forecast);
+      } else {
+        throw new Error('Failed to fetch weather and forecast');
+      }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
+  const handleOnSearchChange = async (searchData) => {
+    const [lat, lon] = searchData.value.split(" ");
+    await fetchWeatherForLocation(lat, lon);
+  };
+
   useEffect(() => {
-    // Fetch default weather data for a location, e.g., Hanoi
-    handleOnSearchChange({ value: "21.0245 105.8412" });
+    const getCurrentLocation = () => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            const { latitude, longitude } = position.coords;
+            fetchWeatherForLocation(latitude, longitude);
+          },
+          (error) => {
+            setError('Error getting location');
+            setLoading(false);
+          }
+        );
+      } else {
+        setError('Geolocation is not supported by this browser.');
+        setLoading(false);
+      }
+    };
+
+    getCurrentLocation();
   }, []);
+  
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   return (
-    <div className="bg-gray-900 min-h-screen text-white p-6" style={{ backgroundImage: 'url(/path-to-rainy-background.jpg)' }}>
-      <div className="max-w-4xl mx-auto">
-        <Search onSearchChange={handleOnSearchChange} />
-        {weatherData && forecastData ? (
-          <div className="bg-gray-800 bg-opacity-80 rounded-3xl shadow-lg p-6 backdrop-blur-sm mt-4">
-            <MainWeather data={weatherData} />
-            <div className="grid grid-cols-2 gap-4 mt-6">
-              <WeatherDetails data={weatherData} />
+    <div className={`min-h-screen ${isDarkMode ? 'text-white bg-gray-900' : 'text-gray-900 bg-gray-100'} p-6`}
+         style={{ backgroundImage: isDarkMode ? 'url(/path-to-dark-background.jpg)' : 'url(/path-to-light-background.jpg)' }}>
+      <div className={`max-w-4xl mx-auto ${isDarkMode ? 'bg-gray-800 bg-opacity-80' : 'bg-white bg-opacity-80'} rounded-3xl shadow-lg p-6 backdrop-blur-sm`}>
+        {/* Navbar */}
+        <nav className="flex items-center justify-between mb-8">
+          <div className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>METEOVERSE</div>
+          <button
+            onClick={toggleDarkMode}
+            className={`p-2 rounded-full ${isDarkMode ? 'bg-yellow-400 text-gray-900' : 'bg-gray-700 text-white'} transition-colors duration-200`}
+            aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDarkMode ? <FaSun className="w-5 h-5" /> : <FaMoon className="w-5 h-5" />}
+          </button>
+        </nav>
+
+        {/* Rest of your content */}
+        {loading && <div className={`text-center text-lg mt-4 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Loading data...</div>}
+        
+        {error && <div className="text-center text-red-500 mt-4">Error: {error}</div>}
+        
+        {weatherData && forecastData && !loading && !error && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left column */}
+            <div className="space-y-6">
+              <Search onSearchChange={handleOnSearchChange} isDarkMode={isDarkMode} />
+              <div className={`border ${isDarkMode ? 'border-gray-600' : 'border-gray-300'} rounded-xl p-4`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <MainWeather data={weatherData} isDarkMode={isDarkMode} />
+                  </div>
+                  <div className="flex-none ml-4">
+                    <Wind data={weatherData} isDarkMode={isDarkMode} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-6">
+                  <WeatherDetails data={weatherData} isDarkMode={isDarkMode} />
+                </div>
+              </div>
             </div>
-            <div className="mt-6">
-              <HourlyForecast data={forecastData} />
-            </div>
-            <div className="mt-6">
-              <TenDayForecast data={forecastData} />
-            </div>
-            <div className="grid grid-cols-2 gap-4 mt-6">
-              <UVIndex data={weatherData} />
-              <Wind data={weatherData} />
+            
+            {/* Right column */}
+            <div className="space-y-6">
+              <HourlyForecast data={forecastData} isDarkMode={isDarkMode} />
+              <SevenDayForecast data={forecastData} isDarkMode={isDarkMode} />
+              <div className="grid gap-4">
+                <WeatherMap lat={weatherData.coord.lat} lon={weatherData.coord.lon} />
+              </div>
             </div>
           </div>
-        ) : (
-          <div>Loading data...</div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer className={`text-center mt-8 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        <p>
+          Created by <a href="https://github.com/aeolus87" className="text-blue-500 hover:underline" target="_blank" rel="noopener noreferrer">aeolus87</a>
+        </p>
+      </footer>
     </div>
   );
 }
