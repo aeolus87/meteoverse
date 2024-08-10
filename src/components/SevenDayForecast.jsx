@@ -25,7 +25,7 @@ function SevenDayForecast({ data, isDarkMode }) {
   }
 
   return (
-    <div className={`p-4 rounded-2xl ${isDarkMode ? ' bg-opacity-50' : 'bg-gray-200'}`}>
+    <div className={`p-4 rounded-2xl ${isDarkMode ? 'bg-gray-700 bg-opacity-50' : 'bg-gray-200'}`}>
       <h3 className={`text-sm font-semibold ${isDarkMode ? 'text-gray-400' : 'text-gray-700'} mb-2`}>7-DAY FORECAST</h3>
       <div className="flex justify-between">
         {filteredData.map((day, index) => (
